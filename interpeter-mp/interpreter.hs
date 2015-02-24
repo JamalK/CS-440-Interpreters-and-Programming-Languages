@@ -245,8 +245,8 @@ eval (BoolOpExp op e1 e2) env =
        Just bop = H.lookup op boolOps
     in liftBoolOp bop v1 v2
 eval (FunExp params body) env = undefined
-eval (AppExp e1 args) env undefined
-eval (LetExp pairs body) env undefined
+eval (AppExp e1 args) env =  undefined
+eval (LetExp pairs body) env = undefined
 
 exec :: Stmt -> PEnv -> Env -> Result
 exec (PrintStmt e) penv env = do
