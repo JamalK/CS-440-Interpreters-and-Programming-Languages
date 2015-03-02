@@ -73,10 +73,10 @@ mulOp =    do { symbol "*" ; return $ IntOpExp "*" }
 addOp =    do { symbol "+" ; return $ IntOpExp "+" }
        <|> do { symbol "-" ; return $ IntOpExp "-" }
 
-andOp = do try $ symbol "and" 
+andOp = do try $ symbol "and"
            return $ BoolOpExp "and"
 
-orOp = do try $ symbol "or" 
+orOp = do try $ symbol "or"
           return $ BoolOpExp "or"
 
 compOp =   do { symbol "<" ; return $ CompOpExp "<" }
@@ -185,7 +185,7 @@ callStmt = do try $ symbol "call"
               symbol ")"
               symbol ";"
               return $ CallStmt name args
- 
+
 seqStmt = do try $ symbol "do"
              stmts <- many1 stmt
              symbol "od"
@@ -226,24 +226,46 @@ liftIntOp op (IntVal x) (IntVal y) = IntVal $ op x y
 
 liftBoolOp op (BoolVal x) (BoolVal y) = BoolVal $ op x y
 
-liftCompOp = undefined
+liftCompOp op (IntVal x) (IntVal y) = BoolVal $ op x y
 
 -- The Evaluator
 
 eval :: Exp -> Env -> Val
 eval (IntExp i) env = IntVal i
-eval (VarExp s) env = 
+eval (VarExp s) env =
    case H.lookup s env of
      Just v -> v
      Nothing -> IntVal 0
-eval (IfExp e1 e2 e3) env = undefined
-eval (CompOpExp op e1 e2) env = undefined
-eval (IntOpExp op e1 e2) env = undefined
+
+eval (IfExp e1 e2 e3) env =
+    let v1 = eval e1 env
+     in case v1 of
+         BoolVal False -> eval e3 env
+         _             -> eval e2 env
+
+
+eval (CompOpExp op e1 e2) env =
+    let v1 = eval e1 env
+        v2 = eval e2 env
+        Just bop = H.lookup op compOps
+    in liftCompOp bop v1 v2
+
+
+eval (IntOpExp op e1 e2) env =
+    let v1 = eval e1 env
+        v2 = eval e2 env
+        Just bop = H.lookup op intOps
+    in liftIntOp bop v1 v2
+
+
+
 eval (BoolOpExp op e1 e2) env =
    let v1 = eval e1 env
        v2 = eval e2 env
        Just bop = H.lookup op boolOps
     in liftBoolOp bop v1 v2
+
+
 eval (FunExp params body) env = undefined
 eval (AppExp e1 args) env =  undefined
 eval (LetExp pairs body) env = undefined
@@ -266,7 +288,7 @@ repl penv env [] _ =
      case parse stmt "stdin" input of
         Right QuitStmt -> do putStrLn "Bye!"
                              return (penv,env)
-        Right (LoadStmt fname) -> 
+        Right (LoadStmt fname) ->
            do putStrLn $ "Reading " ++ fname
               fdata <- readFile fname
               (nupenv,nuenv) <- repl penv env (lines fdata) fname
@@ -279,7 +301,7 @@ repl penv env (l:ll) fname =
    case parse stmt fname l of
       Right QuitStmt -> do putStrLn "File ended by quit."
                            return (penv,env)
-      Right (LoadStmt fname') -> 
+      Right (LoadStmt fname') ->
          do putStrLn $ "Reading " ++ fname'
             fdata <- readFile fname'
             (nupenv,nuenv) <- repl penv env (lines fdata) fname'
