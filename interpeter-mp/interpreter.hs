@@ -34,6 +34,8 @@ data Val = IntVal Int
 
 instance Show Val where
    show (IntVal i) = show i
+   show (BoolVal i) = show i
+
 
 -- Parser, given for you this time.
 
@@ -267,8 +269,20 @@ eval (BoolOpExp op e1 e2) env =
 
 
 eval (FunExp params body) env = undefined
+
 eval (AppExp e1 args) env =  undefined
-eval (LetExp pairs body) env = undefined
+
+
+
+
+
+eval (LetExp pairs body) env =
+    -- let vars = Prelude.map fst pairs
+    -- let vals = Prelude.map (\x -> eval (snd x) env) pairs
+    let nuenv = Prelude.foldr (\(v,e) nuenv ->
+                            H.insert v (eval e env) nuenv) env pairs
+        in eval body nuenv
+
 
 exec :: Stmt -> PEnv -> Env -> Result
 exec (PrintStmt e) penv env = do
@@ -277,7 +291,8 @@ exec (PrintStmt e) penv env = do
 exec (SetStmt var e) penv env = do
    let val = eval e env
    return (penv, H.insert var val env)
-exec p@(ProcedureStmt name args body) penv env = undefined
+exec p@(ProcedureStmt name args body) penv env =
+    return (H.insert name p penv, env)
 exec (CallStmt name args) penv env = undefined
 
 
