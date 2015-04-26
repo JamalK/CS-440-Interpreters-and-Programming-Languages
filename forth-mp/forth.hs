@@ -72,11 +72,12 @@ swap _ = error "Stack underflow!"
 rot (x:(y:(z:zs))) = z : x : y : zs
 rot _ = error "Stack underflow!"
 
-
+-- Forth Boolean
 forthBool a
     | a =  -1
     | otherwise = 0
 
+-- Function definition --Brooken for a reason I can't fathom.
 define word xx (istack,cstack,dict) =
   case elemIndex ";" xx of
     Just index -> define' word (splitAt index xx)(istack,cstack,dict)
