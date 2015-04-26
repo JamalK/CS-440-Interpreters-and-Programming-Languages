@@ -20,6 +20,8 @@ operators = [   ("dup",Prim dup),
                 ("drop", Prim dropJ),
                 ("swap", Prim swap),
                 ("rot", Prim rot),
+                (">", Prim (wrap4 (>))),
+                ("<", Prim (wrap4 (<))),
                 ("-", Prim (wrap3 (-))),
                 ("*", Prim (wrap2 (*))),
                 ("+", Prim (wrap2 (+))),
@@ -48,6 +50,8 @@ wrap2 f _ = error "Value stack underflow!"
 wrap3 f (x:y:xs) = (f y x):xs
 wrap3 f _ = error "Value stack underflow!"
 
+wrap4 f (x:y:xs) = forthBool(f y x):xs
+wrap4 f _ = error "Value stack underflow!"
 
 
 
@@ -67,6 +71,11 @@ swap _ = error "Stack underflow!"
 
 rot (x:(y:(z:zs))) = z : x : y : zs
 rot _ = error "Stack underflow!"
+
+
+forthBool a
+    | a =  -1
+    | otherwise = 0
 
 define word xx (istack,cstack,dict) =
   case elemIndex ";" xx of
